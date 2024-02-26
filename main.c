@@ -1,62 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define row 3
-#define column 3
-/*initialize the array*/
-void INchess(char chess[3][3],int a , int b)
+//initialize the chess board
+void inchess(char chess[3][3])
 {
-    int r=0,c=0;
-    for (;r<a;r++)
+    int m,n;
+    for (m=0;m<3;m++)
     {
-        for(c=0;c<b;c++)
+        for (n=0;n<3;n++)
         {
-            chess[r][c]=' ';
+            chess[m][n]=' ';
         }
     }
 }
 
-
-
+//print the present chess board
 void printchess(char chess[3][3])
 {
-    int c=0;
-    for (;c<2;c++)
-    {
-        printf("    %c|%c  |%c    ",chess[c][0],chess[c][1],chess[c][2]);
-        printf("\n");
-        printf("  ---|---|---   ");
-        printf("\n");
-    }
-    printf("    %c|%c  |%c    ",chess[2][0],chess[2][1],chess[2][2]);
-    printf("\n");
+    printf("                      %c | %c  | %c \n",chess[0][0],chess[0][1],chess[0][2]);
+    printf("                     ---|----|---\n");
+    printf("                      %c | %c  | %c \n",chess[1][0],chess[1][1],chess[1][2]);
+    printf("                     ---|----|---\n");
+    printf("                      %c | %c  | %c \n",chess[2][0],chess[2][1],chess[2][2]);
 }
 
 
-void playermove(char chess[3][3],int a,int b,char ch)
-{
-    chess[a-1][b-1]=ch;
-}
-
-
-int judgeplace (char chess[3][3],int a,int b)
-{
-    if (chess[a-1][b-1] ==' ')
-        return 1;
-    else
-        return 0;
-}
-
-
-int judgefull(char chess[3][3])
-{
-    if (chess[0][0]!=' ' &&chess[0][1]!=' ' &&chess[0][2]!=' ' &&chess[1][0]!=' ' &&chess[1][1]!=' ' &&chess[1][2]!=' ' &&chess[2][0]!=' ' &&chess[2][1]!=' ' &&chess[2][2]!=' ' )
-        return 1;
-    else
-        return 0;
-}
-
-
-int judgewin(char c[3][3],char ch)
+//get the current score
+int reslut(char c[3][3],char ch)
 {
     if(c[0][0]==ch && c[0][1]==ch && c[0][2]==ch )
         return 1;
@@ -78,38 +47,90 @@ int judgewin(char c[3][3],char ch)
         return 0;
 }
 
+int judgeplace(char chess[3][3],int a,int b)
+{
+    if (chess[a][b]==' ')
+        return 1;
+    else
+        return 0;
+}
+//cosidering draw and show that in the score funciton
+int checkfull(char chess[3][3])
+{
+    int a,b;
+    int t=0;
+    for (a=0;a<3;a++)
+    {
+        for (b=0;b<3;b++)
+        {
+            if (chess[a][b]!=' ')
+            {
+                t++;
+                return t;
+            }
+        }
+    }
+    return t;
+}
+
+int score(char chess[3][3])
+{
+    //draw
+    if (checkfull(chess)==1&&reslut(chess,'#')==0&&reslut(chess,'^')==0)
+        return 0;
+    else
+    {
+        //AI goals
+        if (reslut(chess,'#')==1)
+            return -1;
+        else
+        {
+            //player goals
+            if (reslut(chess,'^')==1)
+                return 1;
+            //game continues
+            else
+                return 0;
+        }
+    }
+}
+
+
+//put the chess player wanna
+void playerputchess(char chess[3][3],int a,int b)
+{
+    chess[a][b]='#';
+}
+
+
+//caution:depth to 0 the minimax resurse will stop
 int minimax(char chess[3][3],int depth,int player)
 {
-    int score=0;
-    if (judgewin(chess,'^')==1)
-        score=1;
+    if (depth==0)
+        return score(chess);
+    
     else
     {
-        if (judgewin(chess,'#')==1)
-            score=-1;
+        int currentscore=0;
+        if (score(chess)!=0)
+            return score(chess);
+        //the main part of minimax
         else
-            score=0;
-    }
-    if (score!=0)
-    {
-        return score;
-    }
-    else
-    {
-        if (score==0)
         {
+            int a,b;
+            //the AI turn
             if(player)
             {
-                int maxscore=-10000;
-                for (int i=1;i<4;i++)
+                int maxscore=-10;
+                for (a=0;a<3;a++)
                 {
-                    for (int j=1;j<4;j++)
+                    for (b=0;b<3;b++)
                     {
-                        if (judgeplace(chess, i, j)==1)
+                        if (judgeplace(chess, a, b)==1)
                         {
-                            playermove(chess, i, j,'^');
-                            int currentscore=minimax(chess,depth+1,!player);
-                            chess[i-1][j-1]=' ';
+                            chess[a][b]='^';
+                            currentscore=minimax(chess,depth-1,!player);
+                            chess[a][b]=' ';
                             if (currentscore>maxscore)
                                 maxscore=currentscore;
                         }
@@ -117,240 +138,85 @@ int minimax(char chess[3][3],int depth,int player)
                 }
                 return maxscore;
             }
+            //the player turn
             else
             {
-                int minscore=10000;
-                for (int i=1;i<4;i++)
+                int minscore=10;
+                
+                for (a=0;a<3;a++)
                 {
-                    for (int j=1;j<4;j++)
+                    for (b=0;b<3;b++)
                     {
-                        if (judgeplace(chess, i, j)==1)
-                            playermove(chess, i, j,'#');
-                        int currentscore=minimax(chess, depth+1, !player);
-                        chess[i-1][j-1]=' ';
-                        if (currentscore<minscore)
+                        if (judgeplace(chess, a, b)==1)
                         {
-                            minscore=currentscore;
+                            playerputchess(chess,a,b);
+                            currentscore=minimax(chess,depth-1,!player);
+                            chess[a][b]=' ';
+                            if (currentscore<minscore)
+                                minscore=currentscore;
                         }
                     }
                 }
-                return score;
+                return minscore;
             }
         }
-        else
-            return score;
+        //below is the main part of minimax
     }
 }
-
-
-void minimax_move(char chess[3][3])
-{
-    int maxscore=-10000;
-    int besta=-1;
-    int bestb=-1;
-    for(int i=1;i<4;i++)
-    {
-        for (int j=1;j<4;j++)
-        {
-            if (judgeplace(chess, i, j)==1)
-            {
-                playermove(chess, i, j,'^');
-                int currentscore=minimax(chess,0,0);
-                chess[i-1][j-1]=' ';
-                if (currentscore>maxscore)
-                {
-                    maxscore=currentscore;
-                    besta=i;
-                    bestb=j;
-                }
-            }
-        }
-    }
-    playermove(chess, besta, bestb,'^');
-    printchess(chess);
-}
-
-
-int main (void)
-{
-      char chess[3][3]={0};
-    INchess(chess,row,column);
-    printchess(chess);
-    int mode =0;
-    int a,b,c,d;
-    do
-    {
-        printf("nice to see u ,player \n");
-        printf("in u turn to move please input the row and column u wanna move \n");
-        printf("mode choose :   AI(1)        LOCAL BATTLE(2)\n");
-        scanf("%d",&mode);
-    }while (mode !=1 && mode!= 2);
-    if (mode ==2)
-    {
-        for (a=0,b=0,c=0,d=0;;)
-        {
-            printf("player1(#) move please:");
-            scanf("%d%d",&a,&b);
-            if (a>3 || b>3 || a<1 || b<1)
-            {
-                printf("number u input must less than 3 and bigger than 0");
-                for (;a>3 || b>3 || a<1 || b<1;)
-                {
-                    printf("number u input must less than 3 and bigger than 0\n");
-                    printf("player1(#)move again:");
-                    scanf("%d%d",&a,&b);
-                }
-            }
-            if (judgeplace(chess,a,b)==0)
-            {
-                do {
-                    printf("this move is against the rule ,move again\n");
-                    printf("player1(#) move please:");
-                    scanf("%d%d",&a,&b);
-                } while (judgeplace(chess, a, b)==0);
-                playermove(chess,a,b,'#');
-                printchess(chess);
-            }
-            else
-            {
-                playermove(chess,a,b,'#');
-                printchess(chess);
-            }
-            if(judgefull(chess)==1)
-            {
-                printf("game over!!!");
-                if(judgewin(chess,'#')==1)
-                {
-                    printf("player1 win**********\n");
-                    printf("game over ***********\n");
-                    break;
-                }
-
-                break;
-            }
-            if(judgewin(chess,'#')==1)
-            {
-                printf("player1 win**********\n");
-                printf("game over ***********\n");
-                break;
-            }
-            printf("player2(^) move please:");
-            scanf("%d%d",&c,&d);
-            if (c>3 || d>3 || c<1 || d<1)
-            {
-                for (;c>3 || d>3 || c<1 || d<1;)
-                {
-                    printf("number u input must less than 3 and bigger than 0\n");
-                    printf("player2(^)move again:");
-                    scanf("%d%d",&c,&d);
-                }
-            }
-            if (judgeplace(chess,c,d)==0)
-            {
-                do {
-                    printf("this move is against the rule ,move again\n");
-                    printf("player2(^) move please:");
-                    scanf("%d%d",&c,&d);
-                } while (judgeplace(chess, c, d)==0);
-                playermove(chess,c,d,'^');
-                printchess(chess);
-            } else
-            {
-                playermove(chess,c,d,'^');
-                printchess(chess);
-            }
-            if(judgefull(chess)==1)
-            {
-                printf("game over!!!");
-                if(judgewin(chess,'^')==1)
-                {
-                    printf("player2 win**********\n");
-                    printf("game over ***********\n");
-                    break;
-                }
-                break;
-            }
-            if(judgewin(chess,'^')==1)
-            {
-                printf("player2 win**********\n");
-                printf("game over ***********\n");
-                break;
-            }
-           }
-    }
     
-    if (mode==1)
+    
+void AImove (char chess[3][3],int depth)
+{
+    int besta =0,bestb =0;
+    int bestscore=-10;
+    int currentscore;
+    int a,b;
+    for (a=0;a<3;a++)
     {
-        for (a=0,b=0;;)
+        for (b=0;b<3;b++)
         {
-            printf("player(#) move please:");
-            scanf("%d%d",&a,&b);
-            if (a>3 || b>3 || a<1 || b<1)
+            if (judgeplace(chess, a, b)==1)
             {
-                printf("number u input must less than 3 and bigger than 0");
-                for (;a>3 || b>3 || a<1 || b<1;)
+                chess[a][b]='^';
+                currentscore=minimax(chess,depth,0);
+                chess[a][b]=' ';
+                if (bestscore<currentscore)
                 {
-                    printf("number u input must less than 3 and bigger than 0\n");
-                    printf("player(#)move again:");
-                    scanf("%d%d",&a,&b);
+                    bestscore=currentscore;
+                    besta=a;
+                    bestb=b;
                 }
             }
-            if (judgeplace(chess,a,b)==0)
-            {
-                do {
-                    printf("this move is against the rule ,move again\n");
-                    printf("player(#) move please:");
-                    scanf("%d%d",&a,&b);
-                } while (judgeplace(chess, a, b)==0);
-                playermove(chess,a,b,'#');
-                printchess(chess);
-            }
-            else
-            {
-                playermove(chess,a,b,'#');
-                printchess(chess);
-            }
-            if(judgefull(chess)==1)
-            {
-                printf("game over!!!");
-                if(judgewin(chess,'#')==1)
-                {
-                    printf("player win**********\n");
-                    printf("game over ***********\n");
-                    break;
-                }
-                
-                break;
-            }
-            if(judgewin(chess,'#')==1)
-            {
-                printf("player win**********\n");
-                printf("game over ***********\n");
-                break;
-            }
-            
-            minimax_move(chess);
-            if(judgefull(chess)==1)
-            {
-                printf("game over!!!");
-                if(judgewin(chess,'^')==1)
-                {
-                    printf("AI win**********\n");
-                    printf("game over ***********\n");
-                    break;
-                }
-                
-                break;
-            }
-            if(judgewin(chess,'^')==1)
-            {
-                printf("AI win**********\n");
-                printf("game over ***********\n");
-                break;
-            }
-
         }
-        
+    }
+    chess[besta][bestb]='^';
+}
+
+
+
+int main(void)
+{
+    char chess[3][3]={0};
+    inchess(chess);
+    printf("***********************hello player i am tic tac toe bot,below is the chess board:******************************\n");
+    printchess(chess);
+    int a=0,b=0;
+    int depth=8;
+    while (1)
+    {
+        if (score(chess)!=0)
+        {
+            printf("***********************          game over       ******************************\n");
+            break;
+        }
+        printf("the place u wanna :");
+        scanf("%d%d",&a,&b);
+        playerputchess(chess,a-1,b-1);
+        depth--;
+        AImove(chess,depth);
+        printchess(chess);
+        depth--;
     }
     return 0;
 }
+
