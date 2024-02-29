@@ -154,7 +154,7 @@ int minimax(char chess[3][3],int depth,int player){
 }
     
     
-void AImove (char chess[3][3],int depth){
+void AImove1 (char chess[3][3],int depth){
     int besta =0,bestb =0;
     int bestscore=-10;
     int currentscore;
@@ -176,6 +176,27 @@ void AImove (char chess[3][3],int depth){
     chess[besta][bestb]='^';
 }
 
+void AImove2 (char chess[3][3],int depth){
+    int besta =0,bestb =0;
+    int bestscore=-10;
+    int currentscore;
+    int a,b;
+    for (a=0;a<3;a++){
+        for (b=0;b<3;b++){
+            if (judgeplace(chess, a, b)==1){
+                chess[a][b]='^';
+                currentscore=minimax(chess,depth,!0);
+                chess[a][b]=' ';
+                if (bestscore<currentscore){
+                    bestscore=currentscore;
+                    besta=a;
+                    bestb=b;
+                }
+            }
+        }
+    }
+    chess[besta][bestb]='^';
+}
 
 
 int main(){
@@ -213,7 +234,7 @@ int main(){
             }
             playerputchess(chess,a-1,b-1);
             depth--;
-            AImove(chess,depth);
+            AImove1(chess,depth);
             printchess(chess);
             depth--;
         }
@@ -222,7 +243,7 @@ int main(){
         while (1){
             int a=0,b=0;
             int depth=9;
-            AImove(chess,depth);
+            AImove2(chess,depth);
             depth--;
             printchess(chess);
             if (score(chess)!=0){
